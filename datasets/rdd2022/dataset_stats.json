@@ -1,0 +1,9 @@
+{
+  "total": 200,
+  "defects": {
+    "D00_Longitudinal_Crack": 219,
+    "D10_Transverse_Crack": 136,
+    "D20_Alligator_Crack": 157,
+    "D40_Pothole": 89
+  }
+}
