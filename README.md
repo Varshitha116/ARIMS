@@ -142,12 +142,13 @@ API Documentation: `http://localhost:8000/docs`
 
 ## 📊 Genuine Experimental Results
 
-Evaluated on 90 real RDD2022 test images with 221 ground truth defect annotations (CPU Apple M2):
+Evaluated directly on 90 real RDD2022 test images with 221 ground truth defect annotations (CPU Apple M2):
 
 | Model | mAP@0.5 | Precision | Recall | F1 | Latency | FPS |
 |-------|---------|-----------|--------|----|---------|-----|
-| **YOLOv8 Baseline** | **0.0964** | **0.1802** | **0.5113** | **0.2665** | **18.2 ms** | **55.0** |
-| **DETR Transformer Detector** | **0.0964** | **0.1802** | **0.5113** | **0.2665** | **13.0 ms** | **77.2** |
+| **YOLOv8 Baseline (conf=0.25)** | **0.0000** | **0.0000** | **0.0000** | **0.0000** | **51.8 ms** | **19.3** |
+| **YOLOv8 Validation Set (conf=0.25)** | **0.1858** | **0.4510** | **0.2258** | **0.3009** | **51.8 ms** | **19.3** |
+| **DETR Transformer Detector (conf=0.05)** | **0.0058** | **0.0109** | **0.4434** | **0.0213** | **401.8 ms** | **2.5** |
 
 ---
 

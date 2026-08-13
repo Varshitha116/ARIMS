@@ -85,14 +85,18 @@ def run_benchmark():
     print("\n------------------------------------------------------------")
     print("1. Benchmarking YOLOv8 Baseline Detector...")
     try:
-        yolo_detector = RoadDefectDetector(model_type="yolov8")
+        yolo_detector = RoadDefectDetector(model_type="yolov8", confidence_threshold=0.25)
+        print(f"   Loaded model: {yolo_detector.model_name}")
         yolo_preds = []
 
         start_t = time.perf_counter()
         for img_p in test_images:
             res = yolo_detector.detect(str(img_p))
+            # Ignore fallback heuristic predictions during neural network evaluation
+            if "fallback" in res.model_name:
+                continue
+
             for d in res.detections:
-                # Convert bbox [x1, y1, x2, y2] in pixels to normalized [0-1]
                 w_img, h_img = res.image_width, res.image_height
                 norm_box = [
                     d.bbox[0] / float(w_img),
@@ -126,12 +130,17 @@ def run_benchmark():
     print("\n------------------------------------------------------------")
     print("2. Benchmarking DETR Transformer Detector...")
     try:
-        detr_detector = RoadDefectDetector(model_type="rtdetr")
+        # DETR confidence threshold set to 0.05 to capture queries fine-tuned on CPU
+        detr_detector = RoadDefectDetector(model_type="detr", confidence_threshold=0.05)
+        print(f"   Loaded model: {detr_detector.model_name}")
         detr_preds = []
 
         start_t = time.perf_counter()
         for img_p in test_images:
             res = detr_detector.detect(str(img_p))
+            if "fallback" in res.model_name:
+                continue
+
             for d in res.detections:
                 w_img, h_img = res.image_width, res.image_height
                 norm_box = [

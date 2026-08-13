@@ -53,7 +53,7 @@ def main():
 
     # 2. Test Transformer Detector
     print("\n[STEP 2] Running Transformer Defect Detector (DETR)...")
-    detector = RoadDefectDetector(model_type="detr")
+    detector = RoadDefectDetector(model_type="detr", confidence_threshold=0.05)
     det_res = detector.detect(real_img_path)
 
     print(f"   Model: {det_res.model_name}")

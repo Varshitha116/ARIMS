@@ -35,10 +35,12 @@ class DetectionAgent(BaseAgent):
         config: Optional[Dict] = None,
     ):
         super().__init__(agent_id, "DetectionAgent", config)
+        # For DETR fine-tuned on CPU, set confidence threshold to 0.05
+        conf_thresh = 0.05 if model_type.lower() in ["detr", "rtdetr"] and confidence_threshold == 0.25 else confidence_threshold
         self.detector = RoadDefectDetector(
             model_type=model_type,
             model_path=model_path,
-            confidence_threshold=confidence_threshold,
+            confidence_threshold=conf_thresh,
         )
         self._detection_history: List[Dict] = []
 

@@ -14,43 +14,43 @@
       "precision": 0,
       "recall": 0.0,
       "f1": 0,
-      "mean_ms": 99.78,
-      "fps": 10.0
+      "mean_ms": 51.75,
+      "fps": 19.3
     },
     "DETR Transformer Detector (Ours)": {
-      "AP@0.5_class_0": 0.0,
+      "AP@0.5_class_0": 0.0233,
       "AP@0.5_class_1": 0.0,
       "AP@0.5_class_2": 0.0,
       "AP@0.5_class_3": 0.0,
-      "mAP@0.5": 0.0,
-      "mAP@0.75": 0.0,
-      "mAP@0.5:0.95": 0.0,
-      "precision": 0,
-      "recall": 0.0,
-      "f1": 0,
-      "mean_ms": 603.18,
-      "fps": 1.7
+      "mAP@0.5": 0.0058,
+      "mAP@0.75": 0.0002,
+      "mAP@0.5:0.95": 0.0015,
+      "precision": 0.0109,
+      "recall": 0.4434,
+      "f1": 0.0213,
+      "mean_ms": 401.8,
+      "fps": 2.5
     }
   },
   "latency_results": {
     "YOLOv8 Baseline (Ours)": {
-      "mean_ms": 99.78,
-      "median_ms": 85.88,
-      "std_ms": 46.63,
-      "p95_ms": 186.1,
-      "p99_ms": 251.58,
-      "min_ms": 46.64,
-      "max_ms": 287.51,
+      "mean_ms": 51.75,
+      "median_ms": 45.62,
+      "std_ms": 11.77,
+      "p95_ms": 74.56,
+      "p99_ms": 95.88,
+      "min_ms": 43.76,
+      "max_ms": 99.25,
       "num_images": 50
     },
     "DETR Transformer Detector (Ours)": {
-      "mean_ms": 603.18,
-      "median_ms": 459.37,
-      "std_ms": 318.11,
-      "p95_ms": 1255.08,
-      "p99_ms": 1729.67,
-      "min_ms": 320.79,
-      "max_ms": 1804.22,
+      "mean_ms": 401.8,
+      "median_ms": 360.54,
+      "std_ms": 122.98,
+      "p95_ms": 653.46,
+      "p99_ms": 724.21,
+      "min_ms": 292.19,
+      "max_ms": 739.3,
       "num_images": 50
     }
   }
