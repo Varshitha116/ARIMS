@@ -1,5 +1,6 @@
 {
   "dataset": "RDD2022_United_States_Real",
+  "secondary_dataset": "Road_Surface_Defect_Dataset_Egypt_Real",
   "num_test_images": 90,
   "num_ground_truth_defects": 221,
   "model_results": {
@@ -14,44 +15,57 @@
       "precision": 0,
       "recall": 0.0,
       "f1": 0,
-      "mean_ms": 51.75,
-      "fps": 19.3
+      "mean_ms": 61.27,
+      "fps": 16.3
     },
     "DETR Transformer Detector (Ours)": {
-      "AP@0.5_class_0": 0.0233,
+      "AP@0.5_class_0": 0.0158,
       "AP@0.5_class_1": 0.0,
       "AP@0.5_class_2": 0.0,
       "AP@0.5_class_3": 0.0,
-      "mAP@0.5": 0.0058,
-      "mAP@0.75": 0.0002,
-      "mAP@0.5:0.95": 0.0015,
-      "precision": 0.0109,
-      "recall": 0.4434,
-      "f1": 0.0213,
-      "mean_ms": 401.8,
-      "fps": 2.5
+      "mAP@0.5": 0.004,
+      "mAP@0.75": 0.0,
+      "mAP@0.5:0.95": 0.0006,
+      "precision": 0.0467,
+      "recall": 0.095,
+      "f1": 0.0626,
+      "mean_ms": 317.08,
+      "fps": 3.2
     }
   },
   "latency_results": {
     "YOLOv8 Baseline (Ours)": {
-      "mean_ms": 51.75,
-      "median_ms": 45.62,
-      "std_ms": 11.77,
-      "p95_ms": 74.56,
-      "p99_ms": 95.88,
-      "min_ms": 43.76,
-      "max_ms": 99.25,
+      "mean_ms": 61.27,
+      "median_ms": 49.38,
+      "std_ms": 24.59,
+      "p95_ms": 110.31,
+      "p99_ms": 122.39,
+      "min_ms": 40.51,
+      "max_ms": 123.42,
       "num_images": 50
     },
     "DETR Transformer Detector (Ours)": {
-      "mean_ms": 401.8,
-      "median_ms": 360.54,
-      "std_ms": 122.98,
-      "p95_ms": 653.46,
-      "p99_ms": 724.21,
-      "min_ms": 292.19,
-      "max_ms": 739.3,
+      "mean_ms": 317.08,
+      "median_ms": 303.62,
+      "std_ms": 37.97,
+      "p95_ms": 403.62,
+      "p99_ms": 433.73,
+      "min_ms": 286.46,
+      "max_ms": 443.85,
       "num_images": 50
+    }
+  },
+  "cross_domain_results": {
+    "DETR Cross-Domain (Egypt)": {
+      "AP@0.5_class_0": 0.0413,
+      "AP@0.5_class_1": 0.0,
+      "AP@0.5_class_2": 0.0,
+      "mAP@0.5": 0.0138,
+      "mAP@0.75": 0.0012,
+      "mAP@0.5:0.95": 0.0035,
+      "precision": 0.236,
+      "recall": 0.0695,
+      "f1": 0.1074
     }
   }
 }

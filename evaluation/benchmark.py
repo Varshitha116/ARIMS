@@ -171,6 +171,36 @@ def run_benchmark():
     except Exception as e:
         print(f"⚠️ DETR benchmark error: {e}")
 
+    # 3. Cross-Domain Benchmark on Road Surface Defect Dataset (Egypt Real Survey)
+    rs_test_dir = PROJECT_ROOT / "datasets" / "road_surface" / "test"
+    rs_results = {}
+    if rs_test_dir.exists() and (rs_test_dir / "images").exists():
+        print("\n------------------------------------------------------------")
+        print("3. Cross-Domain Evaluation on Road Surface Defect Dataset (Egypt)...")
+        rs_images = sorted(list((rs_test_dir / "images").glob("*.jpg")))[:50]
+        rs_gt = load_ground_truths(rs_test_dir)
+        print(f"   Loaded {len(rs_images)} Road Surface test images & {len(rs_gt)} GT annotations.")
+
+        try:
+            rs_detr = RoadDefectDetector(model_type="detr", confidence_threshold=0.05)
+            rs_preds = []
+            for img_p in rs_images:
+                res = rs_detr.detect(str(img_p))
+                if "fallback" not in res.model_name:
+                    for d in res.detections:
+                        w_img, h_img = res.image_width, res.image_height
+                        rs_preds.append({
+                            "image_id": img_p.stem,
+                            "class_id": d.class_id,
+                            "confidence": d.confidence,
+                            "bbox": [d.bbox[0]/w_img, d.bbox[1]/h_img, d.bbox[2]/w_img, d.bbox[3]/h_img]
+                        })
+            rs_metrics = compute_map(rs_preds, rs_gt)
+            rs_results["DETR Cross-Domain (Egypt)"] = rs_metrics
+            print(f"   DETR Cross-Domain Recall: {rs_metrics.get('recall', 0):.4f} | mAP@0.5: {rs_metrics.get('mAP@0.5', 0):.4f}")
+        except Exception as e:
+            print(f"⚠️ Cross-domain benchmark error: {e}")
+
     # Generate genuine report file
     report_path = PROJECT_ROOT / "docs" / "evaluation_report.md"
     generate_evaluation_report(model_results, latency_results, save_path=str(report_path))
@@ -180,10 +210,12 @@ def run_benchmark():
     out_json = PROJECT_ROOT / "evaluation" / "benchmark_results.json"
     bench_data = {
         "dataset": "RDD2022_United_States_Real",
+        "secondary_dataset": "Road_Surface_Defect_Dataset_Egypt_Real",
         "num_test_images": len(test_images),
         "num_ground_truth_defects": len(ground_truths),
         "model_results": model_results,
-        "latency_results": latency_results
+        "latency_results": latency_results,
+        "cross_domain_results": rs_results
     }
     with open(out_json, "w") as f:
         json.dump(bench_data, f, indent=2)
