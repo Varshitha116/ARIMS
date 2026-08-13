@@ -1,23 +1,12 @@
-# RDD2022 Dataset Configuration for ARIMS
-# Road Damage Detection 2022
-
+# RDD2022 Real Road Defect Dataset Configuration for ARIMS
 path: ./datasets/rdd2022
 train: train/images
 val: val/images
 test: test/images
 
-# Number of classes
 nc: 4
-
-# Class names
 names:
   0: D00_Longitudinal_Crack
   1: D10_Transverse_Crack
   2: D20_Alligator_Crack
   3: D40_Pothole
-
-# Class descriptions (for documentation)
-# D00: Linear cracks running parallel to the road direction
-# D10: Linear cracks running perpendicular to the road direction
-# D20: Interconnected/network cracks (fatigue cracking)
-# D40: Bowl-shaped depressions in the pavement surface

@@ -1,0 +1,57 @@
+{
+  "dataset": "RDD2022_United_States_Real",
+  "num_test_images": 90,
+  "num_ground_truth_defects": 221,
+  "model_results": {
+    "YOLOv8 Baseline (Ours)": {
+      "AP@0.5_class_0": 0.0,
+      "AP@0.5_class_1": 0.0,
+      "AP@0.5_class_2": 0.0,
+      "AP@0.5_class_3": 0.0,
+      "mAP@0.5": 0.0,
+      "mAP@0.75": 0.0,
+      "mAP@0.5:0.95": 0.0,
+      "precision": 0,
+      "recall": 0.0,
+      "f1": 0,
+      "mean_ms": 99.78,
+      "fps": 10.0
+    },
+    "DETR Transformer Detector (Ours)": {
+      "AP@0.5_class_0": 0.0,
+      "AP@0.5_class_1": 0.0,
+      "AP@0.5_class_2": 0.0,
+      "AP@0.5_class_3": 0.0,
+      "mAP@0.5": 0.0,
+      "mAP@0.75": 0.0,
+      "mAP@0.5:0.95": 0.0,
+      "precision": 0,
+      "recall": 0.0,
+      "f1": 0,
+      "mean_ms": 603.18,
+      "fps": 1.7
+    }
+  },
+  "latency_results": {
+    "YOLOv8 Baseline (Ours)": {
+      "mean_ms": 99.78,
+      "median_ms": 85.88,
+      "std_ms": 46.63,
+      "p95_ms": 186.1,
+      "p99_ms": 251.58,
+      "min_ms": 46.64,
+      "max_ms": 287.51,
+      "num_images": 50
+    },
+    "DETR Transformer Detector (Ours)": {
+      "mean_ms": 603.18,
+      "median_ms": 459.37,
+      "std_ms": 318.11,
+      "p95_ms": 1255.08,
+      "p99_ms": 1729.67,
+      "min_ms": 320.79,
+      "max_ms": 1804.22,
+      "num_images": 50
+    }
+  }
+}

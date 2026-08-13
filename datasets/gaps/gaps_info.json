@@ -1,0 +1,22 @@
+{
+  "dataset_name": "GAPS (German Asphalt Pavement Scanner)",
+  "official_website": "https://www.gaps-dataset.de/",
+  "access_requirement": "Academic Registration Required via TU Darmstadt SNN Group",
+  "dataset_type": "High-resolution laser 3D pavement surface scans",
+  "total_images": 2468,
+  "image_resolution": [
+    1920,
+    1080
+  ],
+  "channels": 1,
+  "distress_types": [
+    "Longitudinal Crack",
+    "Transverse Crack",
+    "Alligator Crack",
+    "Pothole",
+    "Patch"
+  ],
+  "intended_use": "Sub-millimeter depth-based pavement distress assessment",
+  "relationship_to_arims": "Provides benchmark specifications for laser 3D scanner integration in autonomous municipal inspection vehicles.",
+  "accessibility_status": "Restricted access (requires institutional registration). RDD2022 US real dataset used for model training."
+}

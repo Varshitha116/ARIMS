@@ -1,0 +1,17 @@
+{
+  "dataset_name": "Road_Surface_Defect_Dataset_Real",
+  "source": "Egypt Road Surface Survey",
+  "total_images": 3563,
+  "splits": {
+    "train": 2851,
+    "val": 356,
+    "test": 356
+  },
+  "annotation_format": "YOLO (class_id cx cy w h normalized)",
+  "image_dimensions": [
+    640,
+    640
+  ],
+  "intended_use": "Cross-domain evaluation of road surface distress detection models",
+  "relationship_to_arims": "Provides secondary real-world validation data for road surface crack and distress detection."
+}

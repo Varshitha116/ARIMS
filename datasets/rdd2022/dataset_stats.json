@@ -1,9 +1,16 @@
 {
-  "total": 200,
-  "defects": {
-    "D00_Longitudinal_Crack": 219,
-    "D10_Transverse_Crack": 136,
-    "D20_Alligator_Crack": 157,
-    "D40_Pothole": 89
+  "dataset_name": "RDD2022_United_States_Real",
+  "total_images_processed": 600,
+  "total_bboxes": 1381,
+  "splits": {
+    "train": 420,
+    "val": 90,
+    "test": 90
+  },
+  "class_distribution": {
+    "D00_Longitudinal_Crack": 832,
+    "D10_Transverse_Crack": 407,
+    "D20_Alligator_Crack": 124,
+    "D40_Pothole": 18
   }
 }

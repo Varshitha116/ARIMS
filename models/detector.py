@@ -25,6 +25,8 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 import numpy as np
 import cv2
 
@@ -232,19 +234,22 @@ class RoadDefectDetector:
         confidence_threshold: float = 0.25,
         device: str = "cpu",
     ):
-        self.model_type = model_type.lower()
+        raw_type = (model_type or "detr").lower()
         self.confidence_threshold = confidence_threshold
         self.device = device
         self.model = None
         self.processor = None
         self.model_name = ""
-        
-        if self.model_type == "detr":
+
+        if raw_type in ["detr", "rtdetr"]:
+            self.model_type = "detr"
             self._load_detr_model(model_path)
-        elif self.model_type == "yolov8":
+        elif raw_type == "yolov8":
+            self.model_type = "yolov8"
             self._load_yolov8_model(model_path)
         else:
-            self._load_detr_model(model_path)  # Default to DETR
+            self.model_type = "detr"
+            self._load_detr_model(model_path)
 
     def _load_detr_model(self, model_path: Optional[str] = None):
         """Load DETR transformer model - GENUINE TRANSFORMER-BASED DETECTION."""
@@ -255,30 +260,41 @@ class RoadDefectDetector:
             return
 
         try:
+            # Auto-discover if model_path not provided
+            if not model_path:
+                auto_paths = [
+                    PROJECT_ROOT / "models" / "checkpoints" / "detr_rdd2022" / "best_model",
+                    PROJECT_ROOT / "models" / "checkpoints" / "detr_rdd2022" / "final_model",
+                    PROJECT_ROOT / "models" / "checkpoints" / "detr_rdd2022_weights",
+                ]
+                for p in auto_paths:
+                    if p.exists():
+                        model_path = str(p)
+                        break
+
             if model_path and Path(model_path).exists():
                 # Load custom-trained weights
                 self.processor = DetrImageProcessor.from_pretrained(model_path)
                 self.model = DetrForObjectDetection.from_pretrained(model_path)
-                print(f"✅ Loaded custom DETR model: {model_path}")
+                self.model_name = f"detr_transformer ({Path(model_path).name})"
+                print(f"✅ Loaded fine-tuned DETR Transformer model from: {model_path}")
             else:
                 # Load pretrained COCO DETR model as base
                 self.processor = DetrImageProcessor.from_pretrained('facebook/detr-resnet-50')
                 self.model = DetrForObjectDetection.from_pretrained('facebook/detr-resnet-50')
                 self.model_name = "detr_resnet50_coco"
-                print("✅ Loaded pretrained DETR ResNet-50 transformer model")
-                print("   Note: Fine-tune on RDD2022 for road defect detection")
+                print("✅ Loaded base DETR ResNet-50 transformer model")
             
             # Set model to evaluation mode
             self.model.eval()
             
         except Exception as e:
             print(f"⚠️  DETR load failed: {e}")
-            print("   Falling back to YOLOv8 or heuristic detector...")
             self.model = None
             self.model_name = "fallback_heuristic"
 
     def _load_yolov8_model(self, model_path: Optional[str] = None):
-        """Load YOLOv8 model (CNN-based fallback)."""
+        """Load YOLOv8 model (CNN-based baseline)."""
         if not HAS_ULTRALYTICS:
             print("⚠️  ultralytics not installed. Using fallback heuristic.")
             self.model = None
@@ -286,13 +302,26 @@ class RoadDefectDetector:
             return
 
         try:
+            # Auto-discover if model_path not provided
+            if not model_path:
+                auto_paths = [
+                    PROJECT_ROOT / "models" / "checkpoints" / "yolov8_rdd2022" / "weights" / "best.pt",
+                    PROJECT_ROOT / "runs" / "detect" / "models" / "checkpoints" / "yolov8_rdd2022" / "weights" / "best.pt",
+                    PROJECT_ROOT / "yolov8n.pt",
+                ]
+                for p in auto_paths:
+                    if p.exists():
+                        model_path = str(p)
+                        break
+
             if model_path and Path(model_path).exists():
                 self.model = YOLO(model_path)
-                self.model_name = Path(model_path).stem
-                print(f"✅ Loaded YOLOv8 model: {self.model_name}")
+                self.model_name = f"yolov8 ({Path(model_path).stem})"
+                print(f"✅ Loaded YOLOv8 baseline model from: {model_path}")
             else:
-                self.model_name = "fallback_heuristic"
-                print("ℹ️  No model weights found. Using fallback detector.")
+                self.model_name = "yolov8n_pretrained"
+                self.model = YOLO("yolov8n.pt")
+                print("✅ Loaded baseline pretrained YOLOv8n model")
         except Exception as e:
             print(f"⚠️  YOLOv8 load failed: {e}")
             self.model = None
