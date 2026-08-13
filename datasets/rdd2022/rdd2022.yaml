@@ -1,7 +1,7 @@
 # RDD2022 Dataset Configuration for ARIMS
 # Road Damage Detection 2022
 
-path: /Users/rahul/Desktop/ARIMS/datasets/rdd2022
+path: ./datasets/rdd2022
 train: train/images
 val: val/images
 test: test/images

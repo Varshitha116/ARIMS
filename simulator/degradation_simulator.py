@@ -46,13 +46,13 @@ TRANSITION_MATRIX_WITH_MAINT = {
     "Very Poor": {"Excellent": 0.00, "Good": 0.05, "Fair": 0.20, "Poor": 0.35, "Very Poor": 0.40},
 }
 
-# Maintenance costs per condition state (USD)
+# Maintenance costs per condition state (INR)
 MAINTENANCE_COSTS = {
-    "Excellent": 200,    # Preventive seal coat
-    "Good":      800,    # Minor patching
-    "Fair":      3000,   # Major patching + overlay
-    "Poor":      8000,   # Rehabilitation
-    "Very Poor": 15000,  # Full reconstruction
+    "Excellent": 16600,     # Preventive seal coat
+    "Good":      66400,     # Minor patching
+    "Fair":      249000,    # Major patching + overlay
+    "Poor":      664000,    # Rehabilitation
+    "Very Poor": 1245000,   # Full reconstruction
 }
 
 

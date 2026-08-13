@@ -58,7 +58,7 @@ class PriorityAgent(BaseAgent):
                 - defect_types: list of str
                 - traffic: str (low/medium/high/very_high)
                 - risk_score: float (0-1) from degradation agent
-                - estimated_cost: float (USD)
+                - estimated_cost: float (INR)
                 - population_density: float (optional, people/km²)
                 - is_highway: bool (optional)
         """

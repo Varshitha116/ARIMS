@@ -44,3 +44,8 @@ datasets/raw/
 # Environment files
 .env
 .env.local
+
+# DETR model checkpoints (too large for GitHub)
+models/checkpoints/detr_rdd2022/
+models/detector_backup.py
+train_detr.py

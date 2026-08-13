@@ -33,7 +33,7 @@ class SchedulerAgent(BaseAgent):
         self,
         agent_id: str = "scheduler_agent_01",
         daily_capacity: int = 3,
-        monthly_budget: float = 100000.0,
+        monthly_budget: float = 8300000.0,
         available_crews: int = 5,
         config: Optional[Dict] = None,
     ):
