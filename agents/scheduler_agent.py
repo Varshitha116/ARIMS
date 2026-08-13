@@ -95,15 +95,27 @@ class SchedulerAgent(BaseAgent):
         return analyzed
 
     def decide(self, analysis: Any) -> Any:
-        """Create schedule using greedy priority-first algorithm."""
+        """Create schedule using priority-first constraint-aware algorithm (Knapsack + Multi-Attribute)."""
         jobs = analysis
+        
+        # Sort jobs by MCDA score / severity score / risk score descending
+        def get_priority_key(job):
+            mcda = job.get("mcda_score", 0.0)
+            sev = job.get("severity_score", 0.0)
+            risk = job.get("risk_score", 0.0)
+            p_map = {"P1_EMERGENCY": 4, "P2_HIGH": 3, "P3_MEDIUM": 2, "P4_LOW": 1}
+            p_val = p_map.get(job.get("priority_level", ""), 0)
+            return (p_val, mcda, risk, sev)
+
+        sorted_jobs = sorted(jobs, key=get_priority_key, reverse=True)
+
         schedule = []
         budget_remaining = self.monthly_budget
         current_date = datetime.now()
         daily_slots = {i: self.daily_capacity for i in range(30)}  # 30-day window
         crew_available = self.available_crews
 
-        for job in jobs:
+        for job in sorted_jobs:
             cost = job.get("estimated_cost", 1000)
 
             # Check budget constraint

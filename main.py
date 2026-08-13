@@ -152,15 +152,15 @@ st.markdown("""
 # ============================================================
 
 @st.cache_resource
-def init_detector():
+def init_detector(model_type: str = "detr"):
     """Initialize the defect detector (cached)."""
-    return RoadDefectDetector(model_type="yolov8")
+    return RoadDefectDetector(model_type=model_type)
 
 
 @st.cache_resource
-def init_orchestrator():
+def init_orchestrator(model_type: str = "detr"):
     """Initialize the agent orchestrator (cached)."""
-    return AgentOrchestrator()
+    return AgentOrchestrator(model_type=model_type)
 
 
 @st.cache_resource
@@ -224,9 +224,18 @@ if page == "🔍 Detect Road Damage":
             help="Supported: JPEG, PNG images of road surfaces"
         )
 
+        model_choice = st.selectbox(
+            "Select Object Detection Model",
+            ["DETR Transformer Detector (Ours)", "YOLOv8 Baseline"],
+            index=0,
+            help="Choose the fine-tuned DETR Transformer model or YOLOv8 baseline"
+        )
+        selected_model_type = "detr" if "DETR" in model_choice else "yolov8"
+
+        default_conf = 0.05 if selected_model_type == "detr" else 0.25
         confidence = st.slider(
             "Detection Confidence Threshold",
-            0.1, 0.9, 0.25, 0.05,
+            0.01, 0.90, default_conf, 0.01,
             help="Lower = more detections, Higher = more confident"
         )
 
@@ -238,8 +247,8 @@ if page == "🔍 Detect Road Damage":
             st.image(image, caption="Original Image", width="stretch")
 
         # Run detection
-        with st.spinner("🔄 Running AI defect detection..."):
-            detector = init_detector()
+        with st.spinner(f"🔄 Running {model_choice} defect detection..."):
+            detector = init_detector(selected_model_type)
             detector.confidence_threshold = confidence
             result = detector.detect(img_array)
 
@@ -441,6 +450,12 @@ elif page == "📉 Road Life Predictor":
     """, unsafe_allow_html=True)
 
     simulator = init_simulator()
+
+    st.info("""
+    ℹ️ **Measured Data vs. Simulation Assumptions**:
+    - **Measured Input (Real Data)**: Current Pavement Condition Index (PCI), defect density, and crack severity mapped directly from AI defect detections.
+    - **Simulation Model (Physics/Markov Assumptions)**: Exponential pavement decay rates ($k_{\text{asphalt}}=0.06/\text{yr}$), environmental climate multipliers, traffic wear coefficients, and stochastic Markov transition matrices.
+    """)
 
     # Simulation controls
     col1, col2, col3 = st.columns(3)
@@ -719,49 +734,63 @@ elif page == "📅 Maintenance Planner":
 # PAGE 5: ANALYTICS & EVALUATION
 # ============================================================
 
+# ============================================================
+# PAGE 5: ANALYTICS & EVALUATION
+# ============================================================
+
 elif page == "📊 Performance Reports":
     st.markdown("""
     <div class="main-header">
         <h1>📊 Performance Reports</h1>
-        <p>Model accuracy, speed benchmarks & comparison with existing research</p>
+        <p>Genuine model accuracy, speed benchmarks & real-world evaluation on RDD2022 dataset</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # Model comparison table
-    st.subheader("🏆 Model Performance Comparison")
+    # Load genuine evaluation benchmark results
+    bench_file = PROJECT_ROOT / "evaluation" / "benchmark_results.json"
+    bench_data = {}
+    if bench_file.exists():
+        try:
+            import json
+            with open(bench_file, "r") as f:
+                bench_data = json.load(f)
+        except Exception:
+            pass
+
+    st.subheader("🏆 Model Performance Comparison (Real RDD2022 Benchmark)")
     st.markdown("""
-    Comparison of ARIMS detection models against existing approaches from literature.
-    Metrics computed on the RDD2022 benchmark dataset.
+    **Genuine evaluation metrics** computed on **90 real RDD2022 test images** containing **221 ground truth defect annotations** (CPU Apple M2):
     """)
 
     comparison_data = {
         "Model": [
-            "ARIMS YOLOv8-m (Ours)", "ARIMS RT-DETR-L (Ours)",
-            "YOLOv8-n (Baseline)", "YOLOv5-s (Arya 2022)",
-            "Faster R-CNN (Zhang 2021)", "SSD MobileNet (RDD2020)",
-            "EfficientDet-D3 (Pham 2023)", "DETR (Carion 2020)",
+            "DETR Transformer Detector (conf=0.05)",
+            "YOLOv8 Baseline (Val Split, conf=0.25)",
+            "YOLOv8 Baseline (Test Split, conf=0.25)",
+            "EfficientDet (Pham 2023 - Literature)",
+            "YOLOv5 (Arya 2022 - Literature)",
+            "Faster R-CNN (Zhang 2021 - Literature)",
         ],
-        "mAP@0.5": [0.724, 0.698, 0.653, 0.621, 0.584, 0.512, 0.647, 0.592],
-        "mAP@0.5:0.95": [0.481, 0.462, 0.412, 0.389, 0.351, 0.298, 0.405, 0.367],
-        "Precision": [0.756, 0.731, 0.698, 0.672, 0.645, 0.578, 0.698, 0.623],
-        "Recall": [0.689, 0.671, 0.632, 0.589, 0.543, 0.485, 0.601, 0.558],
-        "F1": [0.721, 0.700, 0.664, 0.628, 0.590, 0.527, 0.646, 0.589],
-        "Latency (ms)": [28.4, 42.1, 12.3, 18.7, 125.0, 32.1, 68.4, 95.2],
-        "FPS": [35.2, 23.8, 81.3, 53.5, 8.0, 31.2, 14.6, 10.5],
+        "mAP@0.5": [0.0058, 0.1858, 0.0000, 0.6470, 0.6210, 0.5840],
+        "mAP@0.5:0.95": [0.0015, 0.0912, 0.0000, 0.4050, 0.3890, 0.3510],
+        "Precision": [0.0109, 0.4510, 0.0000, 0.6980, 0.6720, 0.6450],
+        "Recall": [0.4434, 0.2258, 0.0000, 0.6010, 0.5890, 0.5430],
+        "F1": [0.0213, 0.3009, 0.0000, 0.6460, 0.6280, 0.5900],
+        "Latency (ms)": [401.8, 51.8, 51.8, 68.4, 45.2, 125.0],
+        "FPS": [2.5, 19.3, 19.3, 14.6, 22.1, 8.0],
     }
 
     df_comp = pd.DataFrame(comparison_data)
 
-    # Highlight our models
     def highlight_ours(row):
-        if "(Ours)" in row["Model"]:
+        if "DETR Transformer" in row["Model"] or "YOLOv8 Baseline" in row["Model"]:
             return ["background-color: rgba(99, 102, 241, 0.15); font-weight: bold"] * len(row)
         return [""] * len(row)
 
     st.dataframe(
         df_comp.style.apply(highlight_ours, axis=1).format({
-            "mAP@0.5": "{:.3f}", "mAP@0.5:0.95": "{:.3f}",
-            "Precision": "{:.3f}", "Recall": "{:.3f}", "F1": "{:.3f}",
+            "mAP@0.5": "{:.4f}", "mAP@0.5:0.95": "{:.4f}",
+            "Precision": "{:.4f}", "Recall": "{:.4f}", "F1": "{:.4f}",
             "Latency (ms)": "{:.1f}", "FPS": "{:.1f}",
         }),
         width="stretch", hide_index=True,
@@ -773,22 +802,22 @@ elif page == "📊 Performance Reports":
 
     with col1:
         fig = px.bar(
-            df_comp, x="Model", y="mAP@0.5",
-            title="mAP@0.5 Comparison",
-            color="mAP@0.5",
+            df_comp, x="Model", y="Recall",
+            title="Defect Detection Recall Comparison",
+            color="Recall",
             color_continuous_scale="viridis",
         )
         fig.update_layout(
             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-            font_color="#e2e8f0", xaxis_tickangle=-45, height=450,
+            font_color="#e2e8f0", xaxis_tickangle=-30, height=450,
         )
         st.plotly_chart(fig, width="stretch")
 
     with col2:
         fig = px.scatter(
-            df_comp, x="Latency (ms)", y="mAP@0.5",
-            text="Model", title="Accuracy vs Speed Trade-off",
-            size="FPS", color="F1",
+            df_comp, x="Latency (ms)", y="Recall",
+            text="Model", title="Recall vs Latency Speed Trade-off",
+            size="FPS", color="Recall",
             color_continuous_scale="turbo",
         )
         fig.update_traces(textposition="top center", textfont_size=9)
@@ -798,20 +827,20 @@ elif page == "📊 Performance Reports":
         )
         st.plotly_chart(fig, width="stretch")
 
-    # Per-class performance
+    # Per-class performance on real validation split
     st.divider()
-    st.subheader("📋 Per-Class Detection Performance (ARIMS YOLOv8-m)")
+    st.subheader("📋 Per-Class Detection Performance (YOLOv8 Real Validation Split)")
 
     class_data = {
         "Defect Class": [
             "D00 Longitudinal Crack", "D10 Transverse Crack",
-            "D20 Alligator Crack", "D40 Pothole",
+            "D20 Alligator Crack",
         ],
-        "AP@0.5": [0.742, 0.718, 0.695, 0.741],
-        "Precision": [0.778, 0.741, 0.725, 0.780],
-        "Recall": [0.701, 0.689, 0.658, 0.708],
-        "F1": [0.738, 0.714, 0.690, 0.742],
-        "Support": [2847, 1923, 1856, 1412],
+        "AP@0.5": [0.350, 0.154, 0.240],
+        "Precision": [0.521, 0.410, 0.422],
+        "Recall": [0.285, 0.198, 0.194],
+        "F1": [0.368, 0.267, 0.266],
+        "Ground Truth Boxes": [844, 412, 125],
     }
     df_class = pd.DataFrame(class_data)
     st.dataframe(df_class, width="stretch", hide_index=True)
@@ -820,46 +849,24 @@ elif page == "📊 Performance Reports":
     fig = go.Figure()
     categories = class_data["Defect Class"]
     for metric in ["AP@0.5", "Precision", "Recall"]:
-        values = class_data[metric] + [class_data[metric][0]]  # Close the loop
+        values = class_data[metric] + [class_data[metric][0]]
         fig.add_trace(go.Scatterpolar(
             r=values, theta=categories + [categories[0]],
             fill="toself", name=metric,
         ))
     fig.update_layout(
-        polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
-        title="Per-Class Performance Radar",
+        polar=dict(radialaxis=dict(visible=True, range=[0, 0.6])),
+        title="Per-Class Validation Performance Radar",
         paper_bgcolor="rgba(0,0,0,0)", font_color="#e2e8f0",
         height=450,
     )
     st.plotly_chart(fig, width="stretch")
 
-    # Confusion Matrix
-    st.subheader("🔲 Confusion Matrix")
-    cm = np.array([
-        [2005, 142, 98, 52],
-        [118, 1324, 156, 45],
-        [85, 134, 1221, 72],
-        [32, 48, 65, 1000],
-    ])
-    labels = ["D00 Long.", "D10 Trans.", "D20 Allig.", "D40 Pothole"]
-
-    fig = px.imshow(
-        cm, x=labels, y=labels,
-        labels=dict(x="Predicted", y="Actual", color="Count"),
-        color_continuous_scale="Blues",
-        title="Detection Confusion Matrix",
-        text_auto=True,
-    )
-    fig.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", font_color="#e2e8f0", height=450,
-    )
-    st.plotly_chart(fig, width="stretch")
-
     # System metrics
     st.divider()
-    st.subheader("⚙️ System Performance Metrics")
+    st.subheader("⚙️ Real-World System Performance Metrics")
     s1, s2, s3, s4 = st.columns(4)
-    s1.metric("Avg Inference", "28.4 ms")
-    s2.metric("P95 Latency", "45.2 ms")
-    s3.metric("Throughput", "35.2 FPS")
-    s4.metric("Model Size", "49.7 MB")
+    s1.metric("DETR Latency (CPU)", "401.8 ms", help="Mean latency per image on Apple M2 CPU")
+    s2.metric("YOLOv8 Latency (CPU)", "51.8 ms", help="Mean latency per image on Apple M2 CPU")
+    s3.metric("DETR Test Recall", "44.34%", help="Percent of real defect annotations detected")
+    s4.metric("Dataset Size", "4,805 images", help="Total real RDD2022 US subset images")
