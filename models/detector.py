@@ -527,8 +527,42 @@ class RoadDefectDetector:
         detections.sort(key=lambda d: d["confidence"], reverse=True)
         return detections[:10]
 
+    def _apply_nms_and_topk(
+        self,
+        raw_detections: List[Dict],
+        iou_threshold: float = 0.40,
+        top_k: int = 5
+    ) -> List[Dict]:
+        """Apply Non-Maximum Suppression (NMS) and Top-K filtering to eliminate duplicate predictions."""
+        if not raw_detections:
+            return []
+
+        # Sort by confidence descending
+        sorted_dets = sorted(raw_detections, key=lambda d: d["confidence"], reverse=True)
+
+        boxes = [d["bbox"] for d in sorted_dets]
+        scores = [d["confidence"] for d in sorted_dets]
+
+        try:
+            # OpenCV NMSBoxes expects [x_min, y_min, width, height]
+            cv_boxes = [[b[0], b[1], b[2] - b[0], b[3] - b[1]] for b in boxes]
+            idx_result = cv2.dnn.NMSBoxes(
+                cv_boxes, scores, score_threshold=0.0, nms_threshold=iou_threshold
+            )
+            if len(idx_result) > 0:
+                indices = idx_result.flatten().tolist()
+            else:
+                indices = list(range(len(sorted_dets)))
+        except Exception:
+            indices = list(range(len(sorted_dets)))
+
+        return [sorted_dets[i] for i in indices[:top_k]]
+
     def _postprocess(self, raw_detections: List[Dict], img_w: int, img_h: int) -> List[Detection]:
-        """Convert raw detections to Detection objects with severity."""
+        """Convert raw detections to Detection objects with severity after NMS and Top-K filtering."""
+        # Filter raw detections using NMS and Top-K (max 5 distinct defects per image)
+        raw_detections = self._apply_nms_and_topk(raw_detections, iou_threshold=0.40, top_k=5)
+
         detections = []
         img_area = img_w * img_h
 
