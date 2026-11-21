@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARIMS Dashboard</title>
+<style>
+  :root {
+    --bg: #0f172a; --surface: #1e293b; --border: #334155;
+    --text: #e2e8f0; --muted: #94a3b8; --accent: #3b82f6;
+    --green: #22c55e; --yellow: #eab308; --orange: #f97316; --red: #ef4444;
+    --radius: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+
+  /* Header */
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; gap: 16px; }
+  header h1 { font-size: 1.4rem; font-weight: 700; }
+  header h1 span { color: var(--accent); }
+  .badge { background: var(--green); color: #000; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+  .badge.warn { background: var(--yellow); }
+
+  /* Layout */
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  .grid { display: grid; gap: 20px; }
+  .grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .card h3 { font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .card .value { font-size: 2rem; font-weight: 700; }
+  .card .sub { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--surface); border-radius: var(--radius); padding: 4px; border: 1px solid var(--border); }
+  .tab { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; color: var(--muted); transition: all 0.2s; border: none; background: none; }
+  .tab:hover { color: var(--text); }
+  .tab.active { background: var(--accent); color: #fff; font-weight: 600; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 10px 12px; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 12px; font-size: 0.85rem; border-bottom: 1px solid var(--border); }
+  tr:hover { background: rgba(59,130,246,0.05); }
+
+  /* Priority badges */
+  .p1 { color: var(--red); font-weight: 700; }
+  .p2 { color: var(--orange); font-weight: 600; }
+  .p3 { color: var(--yellow); }
+  .p4 { color: var(--green); }
+
+  /* Progress bar */
+  .progress-bar { background: var(--border); border-radius: 6px; height: 8px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 6px; transition: width 0.5s; }
+
+  /* Section */
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  /* Status dot */
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot.green { background: var(--green); }
+  .dot.yellow { background: var(--yellow); }
+  .dot.red { background: var(--red); }
+
+  /* Loading */
+  .loading { text-align: center; padding: 40px; color: var(--muted); }
+
+  /* Panels */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Agent card */
+  .agent-card { display: flex; align-items: center; gap: 12px; }
+  .agent-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+
+  /* Tooltip */
+  .tooltip { position: relative; cursor: help; border-bottom: 1px dotted var(--muted); }
+  .tooltip:hover::after {
+    content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+    background: #000; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem;
+    white-space: nowrap; z-index: 10;
+  }
+
+  /* Weather */
+  .weather-tag { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+  .weather-proceed { background: rgba(34,197,94,0.2); color: var(--green); }
+  .weather-delay { background: rgba(234,179,8,0.2); color: var(--yellow); }
+  .weather-block { background: rgba(239,68,68,0.2); color: var(--red); }
+
+  /* Form */
+  .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .form-group { flex: 1; min-width: 150px; }
+  .form-group label { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
+  .form-group input, .form-group select { width: 100%; padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.85rem; }
+  button.primary { background: var(--accent); color: #fff; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+  button.primary:hover { background: #2563eb; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>ARIMS</span> Dashboard</h1>
+  <span class="badge" id="health-badge">Connecting...</span>
+  <div style="flex:1"></div>
+  <span style="font-size:0.8rem;color:var(--muted)">Agentic AI Road Infrastructure Maintenance</span>
+</header>
+
+<div class="container">
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="showPanel('overview')">Overview</button>
+    <button class="tab" onclick="showPanel('priority')">Priority Queue</button>
+    <button class="tab" onclick="showPanel('scheduler')">Scheduler</button>
+    <button class="tab" onclick="showPanel('agents')">Agents</button>
+    <button class="tab" onclick="showPanel('simulate')">Simulator</button>
+    <button class="tab" onclick="showPanel('datasets')">Datasets</button>
+  </div>
+
+  <!-- OVERVIEW PANEL -->
+  <div class="panel active" id="panel-overview">
+    <div class="grid grid-4 section" id="kpi-cards">
+      <div class="card"><h3>System Status</h3><div class="value" id="kpi-status">--</div><div class="sub">API Health</div></div>
+      <div class="card"><h3>Active Agents</h3><div class="value" id="kpi-agents">8</div><div class="sub">Detection, Degradation, Priority, Budget, Weather, Scheduler, Monitoring, Orchestrator</div></div>
+      <div class="card"><h3>Total Defect Classes</h3><div class="value">4</div><div class="sub">D00 Crack, D10 Crack, D20 Alligator, D40 Pothole</div></div>
+      <div class="card"><h3>Database</h3><div class="value" id="kpi-db">--</div><div class="sub" id="kpi-db-sub">Checking...</div></div>
+    </div>
+
+    <div class="grid grid-2 section">
+      <div class="card">
+        <h3>Pipeline Flow</h3>
+        <div style="font-size:0.85rem;line-height:2;padding:12px 0;">
+          <strong>1.</strong> Image / Road Data &rarr; <strong>Detection Agent</strong> (YOLOv8/DETR)<br>
+          <strong>2.</strong> Defects &rarr; <strong>Degradation Agent</strong> (Monte Carlo PCI Prediction)<br>
+          <strong>3.</strong> Risk Scores &rarr; <strong>Priority Agent</strong> (MCDA + heapq)<br>
+          <strong>4.</strong> Ranked Jobs &rarr; <strong>Budget Agent</strong> (Tiered Allocation)<br>
+          <strong>5.</strong> Funded Jobs &rarr; <strong>Weather Agent</strong> (Monsoon Calendar)<br>
+          <strong>6.</strong> Schedule &rarr; <strong>Scheduler Agent</strong> (Greedy + Constraints)<br>
+          <strong>7.</strong> Metrics &rarr; <strong>Monitoring Agent</strong> (Health + Alerts)
+        </div>
+      </div>
+      <div class="card">
+        <h3>Quick Actions</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;padding:12px 0;">
+          <button class="primary" onclick="showPanel('priority');loadPriority();">View Priority Queue</button>
+          <button class="primary" onclick="showPanel('simulate');">Run Degradation Simulation</button>
+          <button class="primary" onclick="showPanel('agents');loadAgents();">Check Agent Status</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRIORITY PANEL -->
+  <div class="panel" id="panel-priority">
+    <div class="section">
+      <div class="section-title">Submit Repair Jobs for MCDA Prioritization</div>
+      <div class="card">
+        <div class="form-row">
+          <div class="form-group"><label>Segment ID</label><input id="pf-seg" value="NH44-KM120"></div>
+          <div class="form-group"><label>Severity (0-1)</label><input id="pf-sev" type="number" step="0.1" value="0.8"></div>
+          <div class="form-group"><label>Traffic</label>
+            <select id="pf-traffic"><option>low</option><option>medium</option><option selected>high</option><option>very_high</option></select>
+          </div>
+          <div class="form-group"><label>Cost (INR)</label><input id="pf-cost" type="number" value="15000"></div>
+          <div class="form-group"><label>Highway?</label>
+            <select id="pf-hw"><option value="false">No</option><option value="true" selected>Yes</option></select>
+          </div>
+        </div>
+        <button class="primary" onclick="submitPriority()">Prioritize</button>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Priority Queue <span class="tooltip" data-tip="Jobs ranked by MCDA composite score. P1=Emergency (&ge;0.75), P2=High (&ge;0.55), P3=Medium (&ge;0.35), P4=Low">?</span></div>
+      <div class="card" id="priority-table"><div class="loading">Click "Prioritize" or load existing queue</div></div>
+    </div>
+  </div>
+
+  <!-- SCHEDULER PANEL -->
+  <div class="panel" id="panel-scheduler">
+    <div class="section">
+      <div class="section-title">Maintenance Schedule</div>
+      <div class="card" id="schedule-table"><div class="loading">Loading schedule...</div></div>
+    </div>
+  </div>
+
+  <!-- AGENTS PANEL -->
+  <div class="panel" id="panel-agents">
+    <div class="section">
+      <div class="section-title">Multi-Agent System Status</div>
+      <div class="grid grid-3" id="agent-grid"><div class="loading">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- SIMULATE PANEL -->
+  <div class="panel" id="panel-simulate">
+    <div class="section">
+      <div class="section-title">Degradation Simulation (Monte Carlo)</div>
+      <div class="card">
+        <div class="form-row">
+          <div class="form-group"><label>Segment ID</label><input id="sf-seg" value="SIM-001"></div>
+          <div class="form-group"><label>Initial PCI (0-100)</label><input id="sf-pci" type="number" value="75"></div>
+          <div class="form-group"><label>Material</label>
+            <select id="sf-mat"><option selected>asphalt</option><option>concrete</option><option>gravel</option><option>composite</option></select>
+          </div>
+          <div class="form-group"><label>Climate</label>
+            <select id="sf-cli"><option selected>tropical</option><option>temperate</option><option>arid</option><option>continental</option></select>
+          </div>
+          <div class="form-group"><label>Traffic</label>
+            <select id="sf-traf"><option>low</option><option>medium</option><option selected>high</option><option>very_high</option></select>
+          </div>
+          <div class="form-group"><label>Years</label><input id="sf-yr" type="number" value="5"></div>
+          <div class="form-group"><label>Simulations</label><input id="sf-nsim" type="number" value="30"></div>
+        </div>
+        <button class="primary" onclick="runSimulation()">Run Simulation</button>
+      </div>
+    </div>
+    <div class="card section" id="sim-result"><div class="loading">Configure and run a simulation above</div></div>
+  </div>
+
+  <!-- DATASETS PANEL -->
+  <div class="panel" id="panel-datasets">
+    <div class="section">
+      <div class="section-title">Dataset Configuration</div>
+      <div class="grid grid-3">
+        <div class="card">
+          <h3>RDD2022 India</h3>
+          <div class="value" style="font-size:1.3rem">7,706 images</div>
+          <div class="sub">17,547 annotations | Tropical climate<br>Potholes, monsoon damage, patch failures</div>
+          <div style="margin-top:12px"><span class="weather-tag weather-proceed">Primary Dataset</span></div>
+        </div>
+        <div class="card">
+          <h3>RDD2022 US</h3>
+          <div class="value" style="font-size:1.3rem">4,805 images</div>
+          <div class="sub">11,014 annotations | Temperate climate<br>Standard crack and pothole taxonomy</div>
+          <div style="margin-top:12px"><span class="weather-tag weather-delay">Cross-Domain Eval</span></div>
+        </div>
+        <div class="card">
+          <h3>Egypt Roads</h3>
+          <div class="value" style="font-size:1.3rem">3,563 images</div>
+          <div class="sub">Arid climate | Heat-induced cracking<br>Transfer learning evaluation</div>
+          <div style="margin-top:12px"><span class="weather-tag weather-delay">Cross-Domain Eval</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="card">
+        <h3>Unified Class Taxonomy (4 Classes)</h3>
+        <table>
+          <tr><th>ID</th><th>Class</th><th>Description</th><th>Indian Subtypes</th></tr>
+          <tr><td>D00</td><td>Longitudinal Crack</td><td>Cracks parallel to road direction</td><td>Edge breaks, settlement cracks</td></tr>
+          <tr><td>D10</td><td>Transverse Crack</td><td>Cracks perpendicular to road</td><td>Thermal cracks, reflective cracks</td></tr>
+          <tr><td>D20</td><td>Alligator Crack</td><td>Interconnected fatigue cracking</td><td>Waterlogging damage, raveling</td></tr>
+          <tr><td>D40</td><td>Pothole</td><td>Bowl-shaped surface depression</td><td>Patch failures, monsoon potholes</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = '';  // Same origin
+
+// ── Tab switching ────────────────────────────────
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'priority') loadPriority();
+  if (name === 'scheduler') loadSchedule();
+  if (name === 'agents') loadAgents();
+}
+
+// ── Health check ─────────────────────────────────
+async function checkHealth() {
+  try {
+    const r = await fetch(API + '/health');
+    const d = await r.json();
+    document.getElementById('health-badge').textContent = d.status === 'healthy' ? 'Online' : 'Degraded';
+    document.getElementById('health-badge').className = d.status === 'healthy' ? 'badge' : 'badge warn';
+    document.getElementById('kpi-status').textContent = d.status === 'healthy' ? 'Healthy' : 'Degraded';
+    document.getElementById('kpi-status').style.color = d.status === 'healthy' ? 'var(--green)' : 'var(--yellow)';
+  } catch(e) {
+    document.getElementById('health-badge').textContent = 'Offline';
+    document.getElementById('health-badge').className = 'badge warn';
+    document.getElementById('kpi-status').textContent = 'Offline';
+    document.getElementById('kpi-status').style.color = 'var(--red)';
+  }
+}
+
+async function checkDB() {
+  try {
+    const r = await fetch(API + '/api/maintenance/db-health');
+    const d = await r.json();
+    document.getElementById('kpi-db').textContent = d.connected ? 'Connected' : 'Memory Mode';
+    document.getElementById('kpi-db').style.color = d.connected ? 'var(--green)' : 'var(--yellow)';
+    document.getElementById('kpi-db-sub').textContent = d.connected ? 'MySQL Active' : (d.error || 'Running without database');
+  } catch(e) {
+    document.getElementById('kpi-db').textContent = 'N/A';
+  }
+}
+
+// ── Priority ─────────────────────────────────────
+function priorityClass(level) {
+  if (level.includes('P1')) return 'p1';
+  if (level.includes('P2')) return 'p2';
+  if (level.includes('P3')) return 'p3';
+  return 'p4';
+}
+
+async function submitPriority() {
+  const job = {
+    segment_id: document.getElementById('pf-seg').value,
+    severity_score: parseFloat(document.getElementById('pf-sev').value),
+    traffic: document.getElementById('pf-traffic').value,
+    estimated_cost: parseFloat(document.getElementById('pf-cost').value),
+    is_highway: document.getElementById('pf-hw').value === 'true',
+    defect_types: ['D40_Pothole'],
+    risk_score: 0.5,
+  };
+  try {
+    const r = await fetch(API + '/api/maintenance/prioritize', {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify([job])
+    });
+    const d = await r.json();
+    renderPriorityTable(d.prioritized_jobs || d);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function loadPriority() {
+  try {
+    const r = await fetch(API + '/api/maintenance/priority-queue');
+    const d = await r.json();
+    if (d.priority_queue && d.priority_queue.length > 0) renderPriorityTable(d.priority_queue);
+  } catch(e) {}
+}
+
+function renderPriorityTable(jobs) {
+  if (!jobs || !jobs.length) return;
+  // Handle both report-style and raw job list
+  const list = Array.isArray(jobs) ? jobs : (jobs.top_5_jobs || []);
+  let html = '<table><tr><th>Rank</th><th>Segment</th><th>Priority</th><th>Score</th><th>Cost</th></tr>';
+  list.forEach((j, i) => {
+    const level = j.priority_level || j.level || 'P3_MEDIUM';
+    html += `<tr>
+      <td>${j.priority_rank || j.rank || i+1}</td>
+      <td><strong>${j.segment_id || j.segment || '--'}</strong></td>
+      <td><span class="${priorityClass(level)}">${level}</span></td>
+      <td>${(j.composite_score || j.score || 0).toFixed(4)}</td>
+      <td>INR ${(j.estimated_cost || 0).toLocaleString()}</td>
+    </tr>`;
+  });
+  html += '</table>';
+  document.getElementById('priority-table').innerHTML = html;
+}
+
+// ── Schedule ─────────────────────────────────────
+async function loadSchedule() {
+  try {
+    const r = await fetch(API + '/api/maintenance/schedule');
+    const d = await r.json();
+    let html = '<table><tr><th>Segment</th><th>Priority</th><th>Date</th><th>Crew</th><th>Status</th><th>Cost</th></tr>';
+    (d.schedule || []).forEach(j => {
+      const sc = j.schedule_status || j.status || '--';
+      const color = sc === 'SCHEDULED' ? 'var(--green)' : 'var(--yellow)';
+      html += `<tr>
+        <td>${j.segment_id || '--'}</td>
+        <td><span class="${priorityClass(j.priority_level || '')}">${j.priority_level || '--'}</span></td>
+        <td>${j.scheduled_date || 'Pending'}</td>
+        <td>${j.assigned_crew || '--'}</td>
+        <td style="color:${color}">${sc}</td>
+        <td>INR ${(j.estimated_cost || 0).toLocaleString()}</td>
+      </tr>`;
+    });
+    html += '</table>';
+    if (d.budget) {
+      const pct = d.budget.utilization_pct || 0;
+      html += `<div style="margin-top:16px"><h3>Budget Utilization</h3>
+        <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" style="width:${pct}%;background:${pct>90?'var(--red)':pct>70?'var(--yellow)':'var(--green)'}"></div></div>
+        <div class="sub">${pct}% used | INR ${(d.budget.budget_used||0).toLocaleString()} of ${(d.budget.total_budget||0).toLocaleString()}</div></div>`;
+    }
+    document.getElementById('schedule-table').innerHTML = html || '<div class="loading">No schedule yet — prioritize jobs first</div>';
+  } catch(e) {
+    document.getElementById('schedule-table').innerHTML = '<div class="loading">Schedule endpoint unavailable</div>';
+  }
+}
+
+// ── Agents ───────────────────────────────────────
+async function loadAgents() {
+  const agents = [
+    {name:'Detection Agent', type:'DetectionAgent', icon:'&#128269;', color:'#3b82f6', desc:'YOLOv8/DETR inference, severity classification'},
+    {name:'Degradation Agent', type:'DegradationAgent', icon:'&#128200;', color:'#f97316', desc:'PCI decay prediction, Monte Carlo simulation'},
+    {name:'Priority Agent', type:'PriorityAgent', icon:'&#9889;', color:'#eab308', desc:'MCDA scoring (5 criteria), heapq extraction'},
+    {name:'Budget Agent', type:'BudgetAgent', icon:'&#128176;', color:'#22c55e', desc:'Tiered allocation: emergency/planned/preventive'},
+    {name:'Weather Agent', type:'WeatherAgent', icon:'&#127782;', color:'#06b6d4', desc:'Indian monsoon calendar, weather-aware scheduling'},
+    {name:'Scheduler Agent', type:'SchedulerAgent', icon:'&#128197;', color:'#8b5cf6', desc:'Greedy constraint-based scheduling'},
+    {name:'Monitoring Agent', type:'MonitoringAgent', icon:'&#128202;', color:'#ec4899', desc:'System health, alerts, telemetry'},
+    {name:'Orchestrator', type:'AgentOrchestrator', icon:'&#127897;', color:'#64748b', desc:'Pipeline coordinator, agent lifecycle'},
+  ];
+  try {
+    const r = await fetch(API + '/api/agents/status');
+    const d = await r.json();
+    const statuses = d.agents || d.agent_statuses || [];
+    let html = '';
+    agents.forEach(a => {
+      const s = statuses.find(s => s.agent_type === a.type) || {};
+      const state = s.state || 'IDLE';
+      const dotClass = state === 'ERROR' ? 'red' : state === 'IDLE' ? 'green' : 'yellow';
+      html += `<div class="card"><div class="agent-card">
+        <div class="agent-icon" style="background:${a.color}22;color:${a.color}">${a.icon}</div>
+        <div><strong>${a.name}</strong><br><span class="sub"><span class="dot ${dotClass}"></span> ${state} | Runs: ${s.run_count||0}</span></div>
+      </div><div class="sub" style="margin-top:8px">${a.desc}</div></div>`;
+    });
+    document.getElementById('agent-grid').innerHTML = html;
+  } catch(e) {
+    let html = '';
+    agents.forEach(a => {
+      html += `<div class="card"><div class="agent-card">
+        <div class="agent-icon" style="background:${a.color}22;color:${a.color}">${a.icon}</div>
+        <div><strong>${a.name}</strong><br><span class="sub">${a.desc}</span></div>
+      </div></div>`;
+    });
+    document.getElementById('agent-grid').innerHTML = html;
+  }
+}
+
+// ── Simulation ───────────────────────────────────
+async function runSimulation() {
+  const body = {
+    segment_id: document.getElementById('sf-seg').value,
+    initial_pci: parseInt(document.getElementById('sf-pci').value),
+    material: document.getElementById('sf-mat').value,
+    climate: document.getElementById('sf-cli').value,
+    traffic: document.getElementById('sf-traf').value,
+    years: parseInt(document.getElementById('sf-yr').value),
+    num_simulations: parseInt(document.getElementById('sf-nsim').value),
+    with_maintenance: false,
+  };
+  document.getElementById('sim-result').innerHTML = '<div class="loading">Running Monte Carlo simulation...</div>';
+  try {
+    const r = await fetch(API + '/api/simulate', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    const traj = d.mean_trajectory || (d.result && d.result.mean_trajectory) || [];
+    let html = '<h3>Simulation Results</h3><table><tr><th>Year</th><th>Mean PCI</th><th>Condition</th><th>Visual</th></tr>';
+    traj.forEach(t => {
+      const pci = t.pci || 0;
+      const color = pci >= 70 ? 'var(--green)' : pci >= 55 ? 'var(--yellow)' : pci >= 40 ? 'var(--orange)' : 'var(--red)';
+      html += `<tr><td>${t.year}</td><td style="color:${color};font-weight:700">${pci.toFixed(1)}</td><td>${t.condition||'--'}</td>
+        <td><div class="progress-bar" style="width:120px"><div class="progress-fill" style="width:${pci}%;background:${color}"></div></div></td></tr>`;
+    });
+    html += '</table>';
+    const fp = d.final_pci_mean || (d.result && d.result.final_pci_mean) || '--';
+    const ytp = d.year_to_poor || (d.result && d.result.year_to_poor) || '--';
+    html += `<div style="margin-top:16px;display:flex;gap:24px;">
+      <div><h3>Final PCI (Mean)</h3><div class="value" style="font-size:1.5rem">${typeof fp === 'number' ? fp.toFixed(1) : fp}</div></div>
+      <div><h3>Years to Poor</h3><div class="value" style="font-size:1.5rem">${typeof ytp === 'number' ? ytp.toFixed(1) : ytp}</div></div></div>`;
+    document.getElementById('sim-result').innerHTML = html;
+  } catch(e) {
+    document.getElementById('sim-result').innerHTML = '<div class="loading">Simulation error: ' + e.message + '</div>';
+  }
+}
+
+// ── Init ─────────────────────────────────────────
+checkHealth();
+checkDB();
+</script>
+</body>
+</html>
+

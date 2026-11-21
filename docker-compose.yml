@@ -1,0 +1,63 @@
+# ============================================================
+# ARIMS — Docker Compose
+# ============================================================
+# Services:
+#   api       — FastAPI backend (port 8000)
+#   dashboard — Streamlit frontend (port 8501)
+#   db        — MySQL 8.0 (port 3306, optional)
+# ============================================================
+
+services:
+  # ── FastAPI Backend ──────────────────────────────────────────
+  api:
+    build: .
+    container_name: arims-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER:-arims_user}:${MYSQL_PASSWORD:-changeme_user}@db:3306/${MYSQL_DATABASE:-arims_db}
+      - MODEL_TYPE=yolov8
+      - DEVICE=cpu
+      - LOG_LEVEL=INFO
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - ./uploads:/app/uploads
+
+  # ── Streamlit Dashboard ─────────────────────────────────────
+  dashboard:
+    build: .
+    container_name: arims-dashboard
+    command: ["streamlit", "run", "main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    ports:
+      - "8501:8501"
+    environment:
+      - DATABASE_URL=mysql+pymysql://${MYSQL_USER:-arims_user}:${MYSQL_PASSWORD:-changeme_user}@db:3306/${MYSQL_DATABASE:-arims_db}
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # ── MySQL Database ──────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: arims-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-changeme_root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-arims_db}
+      MYSQL_USER: ${MYSQL_USER:-arims_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme_user}
+    ports:
+      - "3306:3306"
+    volumes:
+      - arims_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  arims_mysql_data:

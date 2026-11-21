@@ -7,6 +7,7 @@ Uses weighted scoring across severity, traffic, degradation rate, cost, and
 strategic importance.
 """
 
+import heapq
 import time
 from typing import Any, Dict, List, Optional
 
@@ -58,7 +59,7 @@ class PriorityAgent(BaseAgent):
                 - defect_types: list of str
                 - traffic: str (low/medium/high/very_high)
                 - risk_score: float (0-1) from degradation agent
-                - estimated_cost: float (USD)
+                - estimated_cost: float (INR)
                 - population_density: float (optional, people/km²)
                 - is_highway: bool (optional)
         """
@@ -197,3 +198,40 @@ class PriorityAgent(BaseAgent):
     def get_priority_queue(self) -> List[Dict]:
         """Get current priority queue."""
         return self._priority_queue
+
+    # ── heapq-based extraction helpers ─────────────────────────
+    # Python heapq is a min-heap, so we negate scores for max-first.
+
+    def _build_heap(self) -> List:
+        """Build a max-heap (via negated scores) from the current queue."""
+        heap = [
+            (-job["composite_score"], idx, job)
+            for idx, job in enumerate(self._priority_queue)
+        ]
+        heapq.heapify(heap)
+        return heap
+
+    def pop_highest(self) -> Optional[Dict]:
+        """Remove and return the highest-priority job in O(log n)."""
+        if not self._priority_queue:
+            return None
+        heap = self._build_heap()
+        neg_score, _idx, job = heapq.heappop(heap)
+        self._priority_queue = [item for _, _, item in heap]
+        return job
+
+    def peek_highest(self) -> Optional[Dict]:
+        """Return the highest-priority job without removing it."""
+        if not self._priority_queue:
+            return None
+        return max(self._priority_queue, key=lambda j: j["composite_score"])
+
+    def drain_top_n(self, n: int = 5) -> List[Dict]:
+        """Pop the top-n highest-priority jobs in order."""
+        heap = self._build_heap()
+        results = []
+        for _ in range(min(n, len(heap))):
+            _, _, job = heapq.heappop(heap)
+            results.append(job)
+        self._priority_queue = [item for _, _, item in heap]
+        return results

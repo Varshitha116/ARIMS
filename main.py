@@ -188,11 +188,11 @@ with st.sidebar:
     page = st.radio(
         "Navigation",
         [
-            "🔍 Defect Detection",
-            "🤖 Multi-Agent Monitor",
-            "📉 Degradation Simulator",
-            "📅 Repair Scheduler",
-            "📊 Analytics & Evaluation",
+            "🔍 Detect Road Damage",
+            "🤖 AI Agent Control Panel",
+            "📉 Road Life Predictor",
+            "📅 Maintenance Planner",
+            "📊 Performance Reports",
         ],
         index=0,
     )
@@ -206,11 +206,11 @@ with st.sidebar:
 # PAGE 1: DEFECT DETECTION
 # ============================================================
 
-if page == "🔍 Defect Detection":
+if page == "🔍 Detect Road Damage":
     st.markdown("""
     <div class="main-header">
-        <h1>🔍 Road Defect Detection</h1>
-        <p>AI-powered defect detection using computer vision</p>
+        <h1>🔍 Detect Road Damage</h1>
+        <p>Upload a road image and let AI identify cracks, potholes & surface defects</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -275,7 +275,7 @@ if page == "🔍 Defect Detection":
                     "Score": f"{det.severity_score:.2f}",
                     "Area (px)": f"{det.area_pixels:.0f}",
                     "Urgency": det.repair_urgency,
-                    "Est. Cost": f"${det.estimated_cost_usd:,.0f}",
+                    "Est. Cost (₹)": f"₹{det.estimated_cost_inr:,.0f}",
                 })
             df = pd.DataFrame(df_data)
             st.dataframe(df, width="stretch", hide_index=True)
@@ -339,11 +339,11 @@ if page == "🔍 Defect Detection":
 # PAGE 2: MULTI-AGENT MONITOR
 # ============================================================
 
-elif page == "🤖 Multi-Agent Monitor":
+elif page == "🤖 AI Agent Control Panel":
     st.markdown("""
     <div class="main-header">
-        <h1>🤖 Multi-Agent System Monitor</h1>
-        <p>Real-time monitoring of autonomous maintenance agents</p>
+        <h1>🤖 AI Agent Control Panel</h1>
+        <p>Monitor the autonomous AI agents that detect, prioritize & schedule road repairs</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -432,11 +432,11 @@ elif page == "🤖 Multi-Agent Monitor":
 # PAGE 3: DEGRADATION SIMULATOR
 # ============================================================
 
-elif page == "📉 Degradation Simulator":
+elif page == "📉 Road Life Predictor":
     st.markdown("""
     <div class="main-header">
-        <h1>📉 Infrastructure Degradation Simulator</h1>
-        <p>Monte Carlo simulation of road condition trajectories</p>
+        <h1>📉 Road Life Predictor</h1>
+        <p>Simulate how road condition changes over time — with and without maintenance</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -548,7 +548,7 @@ elif page == "📉 Degradation Simulator":
                    delta=f"{no_maint.final_pci_mean - initial_pci:.1f}")
         c2.metric("Final PCI (With Maint)", f"{with_maint.final_pci_mean:.1f}",
                    delta=f"{with_maint.final_pci_mean - initial_pci:.1f}")
-        c3.metric("Avg. Maint Cost/Year", f"${with_maint.total_maintenance_cost / sim_years:,.0f}")
+        c3.metric("Avg. Maint Cost/Year", f"₹{with_maint.total_maintenance_cost / sim_years:,.0f}")
         c4.metric("PCI Saved by Maint", f"+{with_maint.final_pci_mean - no_maint.final_pci_mean:.1f}")
 
         # Final condition distribution
@@ -582,11 +582,11 @@ elif page == "📉 Degradation Simulator":
 # PAGE 4: REPAIR SCHEDULER
 # ============================================================
 
-elif page == "📅 Repair Scheduler":
+elif page == "📅 Maintenance Planner":
     st.markdown("""
     <div class="main-header">
-        <h1>📅 Repair Schedule Optimizer</h1>
-        <p>AI-driven repair prioritization and scheduling</p>
+        <h1>📅 Maintenance Planner</h1>
+        <p>AI-driven repair prioritization, crew assignment & budget optimization</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -634,7 +634,7 @@ elif page == "📅 Repair Scheduler":
 
     col_a, col_b, col_c = st.columns(3)
     with col_a:
-        budget = st.number_input("Monthly Budget ($)", 10000, 500000, 100000, 10000)
+        budget = st.number_input("Monthly Budget (₹)", 500000, 50000000, 8300000, 500000)
     with col_b:
         capacity = st.number_input("Daily Job Capacity", 1, 10, 3)
     with col_c:
@@ -671,7 +671,7 @@ elif page == "📅 Repair Scheduler":
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("Scheduled Jobs", schedule_report.get("scheduled_jobs", 0))
         m2.metric("Deferred Jobs", schedule_report.get("deferred_jobs", 0))
-        m3.metric("Budget Used", f"${schedule_report.get('budget_used', 0):,.0f}")
+        m3.metric("Budget Used", f"₹{schedule_report.get('budget_used', 0):,.0f}")
         m4.metric("Utilization", f"{schedule_report.get('budget_utilization', 0):.1f}%")
 
         # Schedule table
@@ -719,11 +719,11 @@ elif page == "📅 Repair Scheduler":
 # PAGE 5: ANALYTICS & EVALUATION
 # ============================================================
 
-elif page == "📊 Analytics & Evaluation":
+elif page == "📊 Performance Reports":
     st.markdown("""
     <div class="main-header">
-        <h1>📊 Analytics & Model Evaluation</h1>
-        <p>Performance metrics, benchmarks, and comparison with existing approaches</p>
+        <h1>📊 Performance Reports</h1>
+        <p>Model accuracy, speed benchmarks & comparison with existing research</p>
     </div>
     """, unsafe_allow_html=True)
 

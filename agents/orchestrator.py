@@ -16,6 +16,8 @@ from agents.degradation_agent import DegradationAgent
 from agents.priority_agent import PriorityAgent
 from agents.scheduler_agent import SchedulerAgent
 from agents.monitoring_agent import MonitoringAgent
+from agents.budget_agent import BudgetAgent
+from agents.weather_agent import WeatherAgent
 
 
 class AgentOrchestrator:
@@ -59,6 +61,13 @@ class AgentOrchestrator:
             monthly_budget=monthly_budget,
             daily_capacity=daily_capacity,
         )
+        self.budget_agent = BudgetAgent(
+            agent_id="budget_agent_01",
+            total_budget=monthly_budget,
+        )
+        self.weather_agent = WeatherAgent(
+            agent_id="weather_agent_01",
+        )
         self.monitoring_agent = MonitoringAgent(
             agent_id="monitoring_agent_01"
         )
@@ -68,6 +77,8 @@ class AgentOrchestrator:
         self.monitoring_agent.register_agent(self.degradation_agent)
         self.monitoring_agent.register_agent(self.priority_agent)
         self.monitoring_agent.register_agent(self.scheduler_agent)
+        self.monitoring_agent.register_agent(self.budget_agent)
+        self.monitoring_agent.register_agent(self.weather_agent)
         self.monitoring_agent.register_agent(self.monitoring_agent)
 
         self._pipeline_runs: List[Dict] = []
@@ -86,7 +97,9 @@ class AgentOrchestrator:
         2. Degradation Agent: Predict road segment degradation
         3. Priority Agent: Prioritize repair jobs
         4. Scheduler Agent: Create repair schedule
-        5. Monitoring Agent: Track pipeline performance
+        5. Budget Agent: Allocate budget across tiers
+        6. Weather Agent: Adjust schedule for weather/monsoon
+        7. Monitoring Agent: Track pipeline performance
 
         Args:
             image_input: Image path, numpy array, or PIL Image
@@ -198,6 +211,24 @@ class AgentOrchestrator:
             results["errors"].append({"stage": "scheduling", "error": str(e)})
             results["stages"]["scheduling"] = {"error": str(e)}
 
+        # ===== Stage 4.5: Budget Allocation =====
+        try:
+            priority_queue = self.priority_agent.get_priority_queue()
+            budget_report = self.budget_agent.run(priority_queue)
+            results["stages"]["budget"] = budget_report
+        except Exception as e:
+            results["errors"].append({"stage": "budget", "error": str(e)})
+            results["stages"]["budget"] = {"error": str(e)}
+
+        # ===== Stage 4.6: Weather Advisory =====
+        try:
+            scheduled_jobs = self.scheduler_agent.get_schedule()
+            weather_report = self.weather_agent.run(scheduled_jobs)
+            results["stages"]["weather"] = weather_report
+        except Exception as e:
+            results["errors"].append({"stage": "weather", "error": str(e)})
+            results["stages"]["weather"] = {"error": str(e)}
+
         # ===== Stage 5: Monitoring =====
         try:
             monitoring_report = self.monitoring_agent.run({})
@@ -255,5 +286,7 @@ class AgentOrchestrator:
             "degradation": self.degradation_agent.get_logs(),
             "priority": self.priority_agent.get_logs(),
             "scheduler": self.scheduler_agent.get_logs(),
+            "budget": self.budget_agent.get_logs(),
+            "weather": self.weather_agent.get_logs(),
             "monitoring": self.monitoring_agent.get_logs(),
         }

@@ -36,7 +36,11 @@ CLASS_MAP = {
 CLASS_NAMES = ["D00_Longitudinal_Crack", "D10_Transverse_Crack",
                "D20_Alligator_Crack", "D40_Pothole"]
 
-COUNTRIES = ["Japan", "India", "Czech", "Norway", "United_States", "China"]
+COUNTRIES = ["India", "Japan", "Czech", "Norway", "United_States", "China"]
+
+# India is the primary target for this research project (Osmania University).
+# When real RDD2022 data is available, the India subset is prioritised.
+PRIORITY_COUNTRIES = ["India"]
 
 DATASET_ROOT = Path("datasets/rdd2022")
 TRAIN_RATIO = 0.7

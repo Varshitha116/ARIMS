@@ -70,7 +70,7 @@ class Detection:
     severity: str = "LOW"
     severity_score: float = 0.0
     repair_urgency: str = "Monitor"
-    estimated_cost_usd: float = 0.0
+    estimated_cost_inr: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -85,7 +85,7 @@ class Detection:
             "severity": self.severity,
             "severity_score": round(self.severity_score, 4),
             "repair_urgency": self.repair_urgency,
-            "estimated_cost_usd": round(self.estimated_cost_usd, 2),
+            "estimated_cost_inr": round(self.estimated_cost_inr, 2),
         }
 
 
@@ -158,19 +158,19 @@ def classify_severity(class_id: int, area_ratio: float) -> tuple:
     if severity_score >= 0.7:
         severity = "CRITICAL"
         urgency = "Immediate Repair Required"
-        cost = 5000 + (area_ratio * 100000)
+        cost = 415000 + (area_ratio * 8300000)
     elif severity_score >= 0.5:
         severity = "HIGH"
         urgency = "Repair Within 48 Hours"
-        cost = 2000 + (area_ratio * 50000)
+        cost = 166000 + (area_ratio * 4150000)
     elif severity_score >= 0.3:
         severity = "MEDIUM"
         urgency = "Schedule Repair Within 1 Week"
-        cost = 500 + (area_ratio * 20000)
+        cost = 41500 + (area_ratio * 1660000)
     else:
         severity = "LOW"
-        urgency = "Monitor Condition"
-        cost = 100 + (area_ratio * 5000)
+        urgency = "Monitor During Routine Inspection"
+        cost = 8300 + (area_ratio * 415000)
 
     return severity, severity_score, urgency, cost
 
@@ -466,7 +466,7 @@ class RoadDefectDetector:
                 severity=severity,
                 severity_score=severity_score,
                 repair_urgency=urgency,
-                estimated_cost_usd=cost,
+                estimated_cost_inr=cost,
             )
             detections.append(detection)
 
